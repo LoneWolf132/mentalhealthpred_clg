@@ -5,6 +5,7 @@ import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.model_selection import train_test_split
+from sklearn.impute import SimpleImputer
 import os
 
 os.system('cls')
@@ -60,15 +61,21 @@ new_cols=["gender", "age", "academic_pressure","cgpa", "study_satisfaction", "sl
 "work_study_hours","financial_stress","family_history","depression"]
 df.columns=new_cols
 #print(df.info())
-
+#impute - NaN values handling
+si =SimpleImputer(strategy='mean') #use mean to fill NaN values - present in financial stress
+si.fit_transform(df)
+df =pd.DataFrame(si.fit_transform(df),columns=new_cols)
+#df.info()
 #dependent and independent  feature sets 
 X=df.drop(columns='depression').copy()
 y=df['depression'].copy() 
 
 #train-test split
 X_train, X_test, y_train, y_test =train_test_split(X,y,test_size=0.2,random_state=42) 
+#print(df[df['financial_stress'].isna()])
+#logistic regression obj 
 
-#logistic regression obj
+
 log_regression=LogisticRegression()
-print(X_train)
+#print(X_train)
 log_regression.fit(X_train, y_train)
