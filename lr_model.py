@@ -6,6 +6,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.impute import SimpleImputer
+from sklearn.metrics import accuracy_score, log_loss
 import os
 
 os.system('cls')
@@ -79,3 +80,21 @@ X_train, X_test, y_train, y_test =train_test_split(X,y,test_size=0.2,random_stat
 log_regression=LogisticRegression()
 #print(X_train)
 log_regression.fit(X_train, y_train)
+
+y_train_pred = log_regression.predict(X_train)
+y_train_proba = log_regression.predict_proba(X_train)[:, 1]
+
+train_accuracy = accuracy_score(y_train, y_train_pred)
+train_bce = log_loss(y_train, y_train_proba)
+
+# ---- Testing predictions ----
+y_test_pred = log_regression.predict(X_test)
+y_test_proba = log_regression.predict_proba(X_test)[:, 1]
+
+test_accuracy = accuracy_score(y_test, y_test_pred)
+test_bce = log_loss(y_test, y_test_proba)
+
+print(f"Train Accuracy: {train_accuracy:.4f}")
+print(f"Train Binary Cross-Entropy: {train_bce:.4f}")
+print(f"Test Accuracy: {test_accuracy:.4f}")
+print(f"Test Binary Cross-Entropy: {test_bce:.4f}")
