@@ -1,6 +1,7 @@
 #AI Model Engine
 import numpy as np
 import pandas as pd
+import joblib
 #from patsy import dmatrices
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, confusion_matrix
@@ -99,3 +100,9 @@ print(f"Train Binary Cross-Entropy: {train_bce:.4f}")
 print(f"Test Accuracy: {test_accuracy:.4f}")
 print(f"Test Binary Cross-Entropy: {test_bce:.4f}")
 print(confusion_matrix(y_test, y_test_pred))
+
+model_path = os.path.join(cwd, "logistic_depression_model_revised.joblib")
+
+joblib.dump(log_regression, model_path)
+
+print(f"Model saved at: {model_path}")
