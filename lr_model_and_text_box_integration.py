@@ -3,7 +3,7 @@ import os
 import joblib
 import numpy as np
 import sys
-
+import spacy
 from sklearn.feature_extraction.text import CountVectorizer
 os.system('cls')
 #importing model into the framework
@@ -36,3 +36,23 @@ print(vectorizer_object.get_feature_names_out())
 print(train_x_vectors.toarray())
 
 #up next - word embeddings
+#word2vec
+#semantic meaning
+#BoW, skipgram -
+#w2v takes a window of words, different tokens
+#based on tokens, use surrounding tokens to infer context
+#related words - similar spot
+#'story','book','characters' - exampleeeee
+
+#spacy! starting point fr it
+'''
+!pip install spacy
+!python -m spacy download en_core_web_md
+You can now load the package via spacy.load('en_core_web_md')
+'''
+nlp = spacy.load('en_core_web_md')
+
+print(train_X)
+
+docs = [nlp(text) for text in train_X]
+print(docs[0])
