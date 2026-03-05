@@ -48,6 +48,12 @@ model = SVC(
 skf = StratifiedKFold(n_splits=5)
 
 scores = cross_val_score(model, X_vectors, labels, cv=skf)
-
+print(model.fit(X_vectors, labels))
 print("Cross-validation scores:", scores)
 print("Average accuracy:", np.mean(scores))
+text = "my foot!"
+
+text_vector = vectorizer.transform([text])   # NOTE: list wrapper []
+prediction = model.predict(text_vector)
+
+print(prediction)

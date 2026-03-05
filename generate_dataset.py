@@ -1,4 +1,4 @@
-import json
+'''import json
 import random
 
 suicidal_templates = [
@@ -39,4 +39,48 @@ random.shuffle(dataset)
 with open("dataset.json", "w") as f:
     json.dump(dataset, f, indent=4)
 
-print("Dataset with 500 samples created.")
+print("Dataset with 500 samples created.")'''
+import json
+import random
+
+suicidal = [
+    "i don't want to exist anymore",
+    "life feels pointless",
+    "idk why im still here",
+    "wish i could disappear",
+    "im done fr",
+    "i hate being alive",
+    "what's the point of living",
+    "im so tired of everything",
+    "maybe people are better without me"
+]
+
+non_suicidal = [
+    "i'm stressed but i'll manage",
+    "life is hard but im trying",
+    "i feel overwhelmed lately",
+    "just tired from work",
+    "need a break",
+    "not my best day but it's okay",
+    "i feel sad but hopeful",
+    "im exhausted but motivated"
+]
+
+dataset = []
+
+for _ in range(250):
+    dataset.append({
+        "text": random.choice(suicidal),
+        "label": 1
+    })
+
+for _ in range(250):
+    dataset.append({
+        "text": random.choice(non_suicidal),
+        "label": 0
+    })
+
+random.shuffle(dataset)
+
+with open("dataset.json", "w") as f:
+    json.dump(dataset, f, indent=4)
