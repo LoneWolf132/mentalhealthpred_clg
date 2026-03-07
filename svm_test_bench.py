@@ -1,7 +1,8 @@
 import joblib
 import re
 import string
-
+import os
+os.system('cls' if os.name == 'nt' else 'clear')
 # -----------------------------
 # 1️⃣ Load trained model
 # -----------------------------
