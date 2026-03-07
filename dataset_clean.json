@@ -1,0 +1,70 @@
+[
+    {
+        "text": "im exhausted but motivated",
+        "label": 0
+    },
+    {
+        "text": "i hate being alive",
+        "label": 1
+    },
+    {
+        "text": "i'm stressed but i'll manage",
+        "label": 0
+    },
+    {
+        "text": "what's the point of living",
+        "label": 1
+    },
+    {
+        "text": "idk why im still here",
+        "label": 1
+    },
+    {
+        "text": "i feel overwhelmed lately",
+        "label": 0
+    },
+    {
+        "text": "need a break",
+        "label": 0
+    },
+    {
+        "text": "just tired from work",
+        "label": 0
+    },
+    {
+        "text": "i feel sad but hopeful",
+        "label": 0
+    },
+    {
+        "text": "i don't want to exist anymore",
+        "label": 1
+    },
+    {
+        "text": "im so tired of everything",
+        "label": 1
+    },
+    {
+        "text": "life is hard but im trying",
+        "label": 0
+    },
+    {
+        "text": "im done fr",
+        "label": 1
+    },
+    {
+        "text": "not my best day but it's okay",
+        "label": 0
+    },
+    {
+        "text": "life feels pointless",
+        "label": 1
+    },
+    {
+        "text": "maybe people are better without me",
+        "label": 1
+    },
+    {
+        "text": "wish i could disappear",
+        "label": 1
+    }
+]
