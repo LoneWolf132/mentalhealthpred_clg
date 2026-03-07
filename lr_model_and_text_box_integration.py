@@ -3,7 +3,7 @@ import numpy as np
 from datetime import datetime
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.svm import SVC
+from sklearn.svm import SVC, LinearSVC
 from sklearn.model_selection import cross_validate
 import joblib
 import os
@@ -33,15 +33,15 @@ log("Building pipeline...")
 
 pipeline = Pipeline([
     ("vectorizer", TfidfVectorizer(
-        ngram_range=(1,2),
+        ngram_range=(1,3),
         stop_words="english",
         min_df=5,
-        max_df=0.9
+        max_df=0.9,
+        sublinear_tf=True
     )),
-    ("svm", SVC(
-        kernel="linear",
-        C=0.75,
-        max_iter=6000
+    ("svm", LinearSVC(
+        C=1.0,
+        max_iter=10000
     ))
 ])
 
@@ -89,4 +89,4 @@ log("Model saved successfully")
 text = "my foot!"
 prediction = pipeline.predict([text])
 
-print("\nTest prediction:", prediction)
+print("\nTest prediction:", prediction) 
