@@ -81,10 +81,10 @@ def save_to_json(data):
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
     # Move one level up → project root
-    project_root = os.path.abspath(os.path.join(current_dir, ".."))
+    #project_root = os.path.abspath(os.path.join(current_dir, ".."))
 
     # Final path
-    json_path = os.path.join(project_root, "external_factors.json")
+    json_path = os.path.join(current_dir, "external_factors.json")
 
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
