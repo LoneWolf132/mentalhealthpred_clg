@@ -1,6 +1,6 @@
 import json
 import pandas as pd
-
+import os
 # -----------------------------
 # Inverse mappings
 # -----------------------------
@@ -74,11 +74,22 @@ def convert_to_readable(data, context):
 # -----------------------------
 # Save JSON
 # -----------------------------
+
+
 def save_to_json(data):
-    with open("external_factors.json", "w", encoding="utf-8") as f:
+    # Get current file directory
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Move one level up → project root
+    project_root = os.path.abspath(os.path.join(current_dir, ".."))
+
+    # Final path
+    json_path = os.path.join(project_root, "external_factors.json")
+
+    with open(json_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
 
-    print("\n✅ Data saved to external_factors.json")
+    print(f"\n✅ Data saved to: {json_path}")
 
 # -----------------------------
 # Main flow
