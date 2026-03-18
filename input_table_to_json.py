@@ -1,6 +1,14 @@
 import json
 import pandas as pd
 import os
+import joblib
+import re
+import string
+from svm_test_bench import clean_text, predict_suicide_risk
+os.system('cls' if os.name == 'nt' else 'clear')
+#current_dir = os.path.dirname(os.path.abspath(__file__))
+#joblib_path = os.path.join(current_dir, "mental_health_svm_model.joblib")
+#text_model = joblib.load(joblib_path)
 # -----------------------------
 # Inverse mappings
 # -----------------------------
@@ -101,3 +109,4 @@ if __name__ == "__main__":
 
     print("\nConverted Data:")
     print(readable_data)
+    print(predict_suicide_risk(readable_data['context']))

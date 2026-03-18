@@ -6,7 +6,9 @@ os.system('cls' if os.name == 'nt' else 'clear')
 # -----------------------------
 # 1️⃣ Load trained model
 # -----------------------------
-model = joblib.load("mental_health_svm_model.joblib")
+current_dir = os.path.dirname(os.path.abspath(__file__))
+joblib_path = os.path.join(current_dir, "mental_health_svm_model.joblib")
+model = joblib.load(joblib_path)
 
 
 # -----------------------------

@@ -1,16 +1,16 @@
 {
     "gender": "Male",
     "age": 21,
-    "academic_pressure": 4,
-    "work_pressure": 4,
+    "academic_pressure": 5,
+    "work_pressure": 5,
     "study_satisfaction": 1,
-    "job_satisfaction": 2,
+    "job_satisfaction": 1,
     "work_study_hours": 14,
-    "financial_stress": 5,
+    "financial_stress": 1,
     "cgpa": 8.43,
     "sleep_duration": "Less than 5 hours",
-    "dietary_habits": "Unhealthy",
+    "dietary_habits": "Moderate",
     "family_history": "Yes",
     "suicidal_thoughts": "Yes",
-    "context": "im drowning in the seaaaaaa im gonna dieeeee"
+    "context": "idk what dafuq to do I feel like dying"
 }
