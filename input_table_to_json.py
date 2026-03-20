@@ -9,6 +9,10 @@ os.system('cls' if os.name == 'nt' else 'clear')
 #current_dir = os.path.dirname(os.path.abspath(__file__))
 #joblib_path = os.path.join(current_dir, "mental_health_svm_model.joblib")
 #text_model = joblib.load(joblib_path)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+depression_model = joblib.load(os.path.join(BASE_DIR, "logistic_depression_model.joblib"))
+suicide_model = joblib.load(os.path.join(BASE_DIR, "mental_health_svm_model.joblib"))
 # -----------------------------
 # Inverse mappings
 # -----------------------------
@@ -98,14 +102,45 @@ def save_to_json(data):
         json.dump(data, f, indent=4)
 
     print(f"\n✅ Data saved to: {json_path}")
+def get_depression_score(data):
 
+
+    df = pd.DataFrame([data])
+    
+    prob = depression_model.predict_proba(df)[0][1]
+    pred = depression_model.predict(df)[0]
+    
+    return prob, pred
+
+def get_suicide_score(context):
+    cleaned = clean_text(context)
+    
+    prob = suicide_model.predict_proba([cleaned])[0][1]
+    pred = suicide_model.predict([cleaned])[0]
+    
+    return prob, pred
 # -----------------------------
 # Main flow
 # -----------------------------
 if __name__ == "__main__":
     raw_data, context = take_manual_input()
     readable_data = convert_to_readable(raw_data, context)
-    save_to_json(readable_data)
+    #save_to_json(readable_data)
+    depression_prob, depression_pred = get_depression_score(raw_data)
+    suicide_prob, suicide_pred = get_suicide_score(context)
+    print(depression_prob, depression_pred)
+    print(suicide_prob, suicide_pred)
+
+    llm_input = {
+    "structured_data": readable_data,
+    "text_context": context,
+    "ml_outputs": {
+        "depression_probability": float(depression_prob),
+        "depression_prediction": int(depression_pred),
+        "suicide_probability": float(suicide_prob),
+        "suicide_prediction": int(suicide_pred)
+        }
+    }   
 
     print("\nConverted Data:")
     print(readable_data)
