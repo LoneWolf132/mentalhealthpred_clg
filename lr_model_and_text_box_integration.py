@@ -3,7 +3,8 @@ import numpy as np
 from datetime import datetime
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.svm import SVC, LinearSVC
+from sklearn.svm import LinearSVC
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.model_selection import cross_validate
 import joblib
 import os
@@ -11,6 +12,7 @@ import os
 os.system('cls' if os.name == 'nt' else 'clear')
 current_dir = os.path.dirname(os.path.abspath(__file__))
 dataset_path = os.path.join(current_dir, "dataset.json")
+
 def log(msg):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
 
@@ -28,22 +30,26 @@ labels = [item["label"] for item in dataset]
 log(f"Loaded {len(texts)} samples")
 
 # -----------------------------
-# 2️⃣ Build Pipeline
+# 2️⃣ Build Pipeline (Optimized)
 # -----------------------------
 log("Building pipeline...")
 
+# The Fix: Calibrated LinearSVC gives probabilities at O(n) linear speed
+svm_calibrated = CalibratedClassifierCV(
+    estimator=LinearSVC(C=1.0), 
+    method='sigmoid', 
+    cv=3 # 3-fold internal CV for probability calibration is plenty
+)
+
 pipeline = Pipeline([
     ("vectorizer", TfidfVectorizer(
-        ngram_range=(1,3),
+        ngram_range=(1,2), # Reduced to bigrams to save memory and time
         stop_words="english",
         min_df=5,
         max_df=0.9,
         sublinear_tf=True
     )),
-    ("svm", LinearSVC(
-        C=1.0,
-        max_iter=10000
-    ))
+    ("svm", svm_calibrated)
 ])
 
 # -----------------------------
@@ -56,7 +62,7 @@ scores = cross_validate(
     texts,
     labels,
     cv=5,
-    scoring=["accuracy", "recall", "f1"],
+    scoring=["accuracy", "recall", "f1"], 
     n_jobs=-1,
     verbose=2
 )
@@ -80,14 +86,20 @@ log("Training complete")
 # -----------------------------
 log("Saving trained model...")
 
-joblib.dump(pipeline, "mental_health_svm_model.joblib")
+joblib.dump(pipeline, "mental_health_svm_model_LinearSVC_Calibrated.joblib")
 
 log("Model saved successfully")
 
 # -----------------------------
-# 6️⃣ Test Prediction
+# 6️⃣ Test Prediction (With Probabilities)
 # -----------------------------
 text = "my foot!"
+
+# Get the standard class prediction
 prediction = pipeline.predict([text])
 
-print("\nTest prediction:", prediction) 
+# Get the probability percentages for each class
+probabilities = pipeline.predict_proba([text])
+
+print("\nTest prediction:", prediction[0])
+print("Probabilities:", probabilities[0])
