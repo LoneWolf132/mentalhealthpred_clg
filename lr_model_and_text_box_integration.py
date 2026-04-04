@@ -9,7 +9,8 @@ import joblib
 import os
 
 os.system('cls' if os.name == 'nt' else 'clear')
-
+current_dir = os.path.dirname(os.path.abspath(__file__))
+dataset_path = os.path.join(current_dir, "dataset.json")
 def log(msg):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
 
@@ -18,7 +19,7 @@ def log(msg):
 # -----------------------------
 log("Loading dataset...")
 
-with open("dataset.json", "r", encoding="utf-8") as f:
+with open(dataset_path, "r", encoding="utf-8") as f:
     dataset = json.load(f)
 
 texts = [item["text"] for item in dataset]
