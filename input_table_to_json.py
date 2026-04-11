@@ -11,7 +11,7 @@ os.system('cls' if os.name == 'nt' else 'clear')
 #text_model = joblib.load(joblib_path)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-depression_model = joblib.load(os.path.join(BASE_DIR, "logistic_depression_model.joblib"))
+depression_model = joblib.load(os.path.join(BASE_DIR, "logistic_depression_model_revised.joblib"))
 suicide_model = joblib.load(os.path.join(BASE_DIR, "mental_health_svm_model.joblib"))
 # -----------------------------
 # Inverse mappings
@@ -49,16 +49,17 @@ def take_manual_input():
         "gender": int(input("Gender (0 = Female, 1 = Male): ")),
         "age": int(input("Age: ")),
         "academic_pressure": int(input("Academic pressure (1–5): ")),
-        "work_pressure": int(input("Work pressure (1–5): ")),
+
+        "cgpa": float(input("CGPA: ")),  # moved up
+
         "study_satisfaction": int(input("Study satisfaction (1–5): ")),
-        "job_satisfaction": int(input("Job satisfaction (1–5): ")),
-        "work_study_hours": int(input("Work/Study hours per day: ")),
-        "financial_stress": int(input("Financial stress (1–5): ")),
-        "cgpa": float(input("CGPA: ")),
         "sleep_duration": int(input("Sleep duration (1–4): ")),
         "dietary_habits": int(input("Diet quality (1–3): ")),
-        "family_history": int(input("Family history (0 = No, 1 = Yes): ")),
-        "suicidal_thoughts": int(input("Suicidal thoughts (0 = No, 1 = Yes): "))
+        "suicidal_thoughts": int(input("Suicidal thoughts (0 = No, 1 = Yes): ")),
+
+        "work_study_hours": int(input("Work/Study hours per day: ")),
+        "financial_stress": int(input("Financial stress (1–5): ")),
+        "family_history": int(input("Family history (0 = No, 1 = Yes): "))
     }
 
     context = input("\nOptional context (press Enter to skip): ")
@@ -123,6 +124,7 @@ def get_suicide_score(context):
 # Main flow
 # -----------------------------
 if __name__ == "__main__":
+    os.system('cls')
     raw_data, context = take_manual_input()
     readable_data = convert_to_readable(raw_data, context)
     #save_to_json(readable_data)
