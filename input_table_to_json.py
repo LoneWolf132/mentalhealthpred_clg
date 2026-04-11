@@ -12,7 +12,7 @@ os.system('cls' if os.name == 'nt' else 'clear')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 depression_model = joblib.load(os.path.join(BASE_DIR, "logistic_depression_model_revised.joblib"))
-suicide_model = joblib.load(os.path.join(BASE_DIR, "mental_health_svm_model.joblib"))
+suicide_model = joblib.load(os.path.join(BASE_DIR, "mental_health_svm_model_LinearSVC_Calibrated.joblib"))
 # -----------------------------
 # Inverse mappings
 # -----------------------------

@@ -2,7 +2,6 @@ from openai import OpenAI
 from input_table_to_json import take_manual_input, convert_to_readable, get_depression_score
 from svm_test_bench import predict_suicide_risk
 import os
-#print("KEY USED:", os.getenv("OPENAI_API_KEY"))
 def build_ml_output(depression_prob, suicide_result):
 
     return {
@@ -10,7 +9,7 @@ def build_ml_output(depression_prob, suicide_result):
         "suicide_probability": float(suicide_result["probability"]),
         "suicide_risk_level": suicide_result["risk_level"]
     }
-client = OpenAI()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def generate_analysis(data, context, ml_outputs):
 
