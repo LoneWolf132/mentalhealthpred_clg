@@ -2,7 +2,7 @@ import os
 import json
 from openai import OpenAI
 from transformers import pipeline
-
+os.system("cls" if os.name == "nt" else "clear")
 # -----------------------------
 # Initialization & Models
 # -----------------------------
@@ -87,41 +87,55 @@ def analyze_intent(text):
 # 2. Holistic Logic Gate
 # -----------------------------
 def evaluate_holistic_state(student_data, text_intent, text, tas_data=None):
-    financial_stress = student_data.get("financial_stress", 1)
-    dif_score = tas_data['factors']['DIF']
-    risk_assessment = "LOW"
-    system_directive = "Standard empathetic listening."
-    if dif_score > 20 and text_intent == "seeking help":
-        # The user wants help but can't name the emotion.
-        risk_assessment = "MODERATE (Masked Distress)"
-        system_directive = (
-            "User has high DIF (Difficulty Identifying Feelings). "
-            "Do NOT ask direct questions about emotions like 'How do you feel?'. "
-            "Instead, ask about somatic sensations (sleep, appetite) or daily activities "
-            "to deduce the source of stress indirectly."
-        )
-        return risk_assessment, system_directive
+    # 1. Safety Guard for Missing Psychometric Data
+    if not tas_data:
+        return "LOW", "Standard empathetic listening. (TAS data missing)"
 
+    # 2. Extract Base Metrics
+    financial_stress = student_data.get("financial_stress", 1)
+    age = student_data.get("age", 21)
+    dif_score = tas_data['factors']['DIF']
+    
+    # -----------------------------
+    # BRANCH A: GEN ALPHA (Developmental Focus)
+    # -----------------------------
+    if age <= 13:
+        if dif_score > 22:
+            return "MODERATE (Sensory Overload)", (
+                "User is Gen Alpha. Use 'Gamified Inferences'. "
+                "Ask about somatic sensations using metaphors (e.g., 'too many tabs open')."
+            )
+        return "LOW", "Use simplified, visual-heavy language."
+
+    # -----------------------------
+    # BRANCH B: GEN Z / MILLENNIAL (Material Friction Focus)
+    # -----------------------------
+    # Priority 1: Alexithymia Check (Applied to ALL intense intents)
+    if dif_score > 20 and text_intent in ["seeking help", "hopelessness", "venting frustration"]:
+        return "MODERATE (Masked Distress)", (
+            "User has high DIF. Do NOT ask 'How do you feel?'. "
+            "Instead, ask about sleep, appetite, or physical tension to deduce stress."
+        )
+
+    # Priority 2: Situational Intent Logic
     if text_intent == "venting frustration" and financial_stress >= 4:
-        risk_assessment = "LOW-MODERATE (Situational)"
-        system_directive = "Validate their frustration. Acknowledge the external pressures (like finances) making things harder. Do NOT treat this as a clinical crisis."
+        return "LOW-MODERATE (Situational)", "Validate frustration. Acknowledge material/financial friction."
         
     elif text_intent == "hostility towards assistant":
-        risk_assessment = "N/A"
-        system_directive = "De-escalate. Set gentle boundaries without abandoning the conversation."
+        return "N/A", "De-escalate. Set gentle boundaries."
         
     elif text_intent == "hopelessness":
         if student_data.get("suicidal_thoughts") == 1:
-            risk_assessment = "HIGH (Ideational)"
-            system_directive = "Prioritize safety. Ask grounding questions. Gently assess if they have a plan."
-        else:
-            risk_assessment = "MODERATE"
-            system_directive = "Explore the feeling of being stuck. Ask what specifically feels insurmountable right now."
+            return "HIGH (Ideational)", "Prioritize safety. Ask grounding questions. Assess for a plan."
+        return "MODERATE", "Explore the feeling of being stuck. Ask what feels insurmountable."
 
-    return risk_assessment, system_directive
+    return "LOW", "Standard empathetic listening."
 
 # -----------------------------
 # 3. Stateful LLM Generation
+# -----------------------------
+# -----------------------------
+# 3. Stateful LLM Generation (UPDATED)
 # -----------------------------
 def generate_dynamic_response(user_input, student_data, chat_state, tas_data):
     
@@ -134,37 +148,55 @@ def generate_dynamic_response(user_input, student_data, chat_state, tas_data):
     # 3. Update Memory
     chat_state["memory"].append({"role": "user", "content": user_input})
     
-    # 4. Construct the dynamic system prompt using REAL user data
+    # 4. Construct the dynamic system prompt
+    age = student_data.get("age", 21)
+    
+    # Base Data Summary
     data_summary = f"""
     [STATISTICAL DATA]
     - Financial Stress: {student_data.get('financial_stress')}/5
     - Academic Pressure: {student_data.get('academic_pressure')}/5
     - CGPA: {student_data.get('cgpa')}
-    - Family History of Mental Health Issues: {"Yes" if student_data.get('family_history') == 1 else "No"}
+    - Alexithymia Profile: {tas_data['factors']}
     """
-    data_summary += f"- Alexithymia Profile: {tas_data['factors']}"
 
-    system_prompt = f"""
-    You are a Technical Mental Health Analyst. Analyze the user's state using 'Material-Psychometric Incongruence'.
+    # --- THE PERSONA BRANCHING ---
+    if age <= 13:
+        # Gen Alpha Persona: Short, visual, system-focused.
+        system_prompt = f"""
+        You are a "System Debugger" helping a Gen Alpha user navigate stress. 
+        
+        {data_summary}
 
-    [DATA PROFILE]
-    - Financial/Academic Stress: {student_data.get('financial_stress')}/5, {student_data.get('academic_pressure')}/5
-    - Competence Metric (CGPA): {student_data.get('cgpa')}
-    - Alexithymia Factors: {tas_data['factors']} (DIF: ID feelings, DDF: Describe feelings, EOT: Logical focus)
+        [EXECUTION DIRECTIVE]
+        {directive}
 
-    [INSTRUCTIONS]
-    1. DIAGNOSTIC FRICTION: Compare the high CGPA ({student_data.get('cgpa')}) with the 'jobless/broke' status. This is the primary source of 'Trajectory Lag'.
-    2. PSYCHE INTERPRETATION: 
-       - If DIF/DDF are LOW (like this user): Acknowledge their high self-awareness. Do NOT use generic 'it's okay' language. Speak to them as an intellectual equal.
-       - If EOT is LOW: Use deep, analytical, and even philosophical language. They value internal examination.
-    3. EXECUTION: {directive}
-    4. NO 'I AM SORRY': Start directly with an analysis of their data.
-    """
+        [STRICT INSTRUCTIONS]
+        1. TL;DR FORMAT ONLY: Maximum 3 short sentences. 
+        2. NO ACADEMIC LANGUAGE: Do not use words like 'cognitive dissonance', 'trajectory', or 'friction'. 
+        3. TONE: Casual, slightly gamified. Treat their stress like a laggy server or a low battery.
+        4. GET TO THE POINT: Execute the directive immediately without introductory filler.
+        """
+    else:
+        # Gen Z / Millennial Persona: Analytical, deep, logical.
+        system_prompt = f"""
+        You are a Technical Mental Health Analyst. Analyze the user's state using 'Material-Psychometric Incongruence'.
+
+        {data_summary}
+
+        [EXECUTION DIRECTIVE]
+        {directive}
+
+        [INSTRUCTIONS]
+        1. DIAGNOSTIC FRICTION: Analyze the friction between their material metrics (like CGPA) and their internal stress.
+        2. PSYCHE INTERPRETATION: Speak to them as an intellectual equal. If EOT is low, use deep, philosophical language.
+        3. NO 'I AM SORRY': Start directly with an analysis of their data.
+        """
 
     messages = [{"role": "system", "content": system_prompt}]
     messages.extend(chat_state["memory"][-10:])
 
-    # Generate Response using gpt-4o-mini
+    # Generate Response
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         temperature=0.5,
@@ -175,6 +207,7 @@ def generate_dynamic_response(user_input, student_data, chat_state, tas_data):
     chat_state["memory"].append({"role": "assistant", "content": bot_reply})
     
     return bot_reply
+
 
 # -----------------------------
 # 4. Dynamic Data Collection
