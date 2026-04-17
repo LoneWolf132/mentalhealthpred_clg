@@ -7,7 +7,26 @@ os.system("cls" if os.name == "nt" else "clear")
 # Initialization & Models
 # -----------------------------
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
+# -----------------------------
+# Dictionary: Digital Somatic Markers & Slang
+# -----------------------------
+alpha_slang_map = {
+    # Gen Z / Gen Alpha Slang
+    "cooked": "hopeless and defeated",
+    "mid": "mediocre and stressful",
+    "tweaking": "frustrated and anxious",
+    "delulu": "disconnected from reality",
+    "ghosted": "abandoned and lonely",
+    "skibidi": "chaotic and overstimulated",
+    
+    # Emojis (Digital Somatic Markers)
+    "💀": "hopeless, completely exhausted",
+    "🫠": "melting under situational stress, overwhelmed",
+    "🤡": "frustrated at myself, feeling foolish",
+    "😭": "venting extreme emotion",
+    "🙃": "masking frustration with a smile",
+    "🙏": "seeking help desperately"
+}
 print("Loading NLP Intent Classifier (BART-Large)...")
 intent_classifier = pipeline(
     "zero-shot-classification", 
@@ -24,18 +43,18 @@ def collect_tas20_data(): #toronto alexythymia scale
     questions = [
         "I am often confused about what emotion I am feeling.",
         "It is difficult for me to find the right words for my feelings.",
-        "I have physical sensations that even doctors don\’t understand.",
+        "I have physical sensations that even doctors don\'t understand.",
         "I am able to describe my feelings easily.", # Reverse
         "I prefer to analyze problems rather than just describe them.", # Reverse
-        "When I am upset, I don\’t know if I am sad, frightened, or angry.",
+        "When I am upset, I don\'t know if I am sad, frightened, or angry.",
         "I am often puzzled by sensations in my body.",
         "I prefer to just let things happen rather than to understand why.",
-        "I have feelings that I can\’t quite identify.",
+        "I have feelings that I can\'t quite identify.",
         "Being in touch with emotions is essential.", # Reverse
         "I find it hard to describe how I feel about people.",
         "People tell me to describe my feelings more.",
-        "I don\’t know what\’s going on inside me.",
-        "I often don\’t know why I am angry.",
+        "I don\'t know what\'s going on inside me.",
+        "I often don\'t know why I am angry.",
         "I prefer talking to people about daily activities rather than feelings.",
         "I prefer to watch 'light' entertainment rather than psychological dramas.",
         "It is difficult for me to reveal my innermost feelings to friends.",
@@ -71,7 +90,16 @@ def collect_tas20_data(): #toronto alexythymia scale
     }
     return tas_data
 
-def analyze_intent(text):
+def analyze_intent(text, age):
+    processed_text = text.lower()
+    
+    # Only apply the Slang Map for Gen Z and Gen Alpha (Age <= 26)
+    if age <= 26:
+        for slang, translation in alpha_slang_map.items():
+            if slang in processed_text:
+                # Inject the meaning into the string for BART to read
+                processed_text = processed_text.replace(slang, f"{slang} [meaning: {translation}]")
+                
     candidate_labels = [
         "venting frustration", 
         "seeking help", 
@@ -80,7 +108,7 @@ def analyze_intent(text):
         "situational stress"
     ]
     
-    result = intent_classifier(text, candidate_labels)
+    result = intent_classifier(processed_text, candidate_labels)
     return result["labels"][0], result["scores"][0]
 
 # -----------------------------
@@ -139,8 +167,11 @@ def evaluate_holistic_state(student_data, text_intent, text, tas_data=None):
 # -----------------------------
 def generate_dynamic_response(user_input, student_data, chat_state, tas_data):
     
-    # 1. Analyze Intent
-    intent, confidence = analyze_intent(user_input)
+    # Fetch age to pass to the intent analyzer
+    age = student_data.get("age", 21)
+    
+    # 1. Analyze Intent (Now Slang/Emoji-Aware)
+    intent, confidence = analyze_intent(user_input, age)
     
     # 2. Pass through Logic Gate
     risk_level, directive = evaluate_holistic_state(student_data, intent, user_input, tas_data)
@@ -148,19 +179,16 @@ def generate_dynamic_response(user_input, student_data, chat_state, tas_data):
     # 3. Update Memory
     chat_state["memory"].append({"role": "user", "content": user_input})
     
-    # 4. Construct the dynamic system prompt
-    age = student_data.get("age", 21)
-    
-    # Base Data Summary
+    # Base Data Summary for the LLM
     data_summary = f"""
     [STATISTICAL DATA]
     - Financial Stress: {student_data.get('financial_stress')}/5
     - Academic Pressure: {student_data.get('academic_pressure')}/5
     - CGPA: {student_data.get('cgpa')}
-    - Alexithymia Profile: {tas_data['factors']}
+    - Alexithymia Profile: {tas_data['factors']} (DIF: Identify, DDF: Describe, EOT: External focus)
     """
 
-    # --- THE PERSONA BRANCHING ---
+    # 4. Construct the dynamic system prompt (PERSONA BRANCHING)
     if age <= 13:
         # Gen Alpha Persona: Short, visual, system-focused.
         system_prompt = f"""
@@ -189,14 +217,14 @@ def generate_dynamic_response(user_input, student_data, chat_state, tas_data):
 
         [INSTRUCTIONS]
         1. DIAGNOSTIC FRICTION: Analyze the friction between their material metrics (like CGPA) and their internal stress.
-        2. PSYCHE INTERPRETATION: Speak to them as an intellectual equal. If EOT is low, use deep, philosophical language.
-        3. NO 'I AM SORRY': Start directly with an analysis of their data.
+        2. PSYCHE INTERPRETATION: Speak to them as an intellectual equal. If EOT is low, use deep, philosophical language. If DDF is high, offer them vocabulary to describe their state.
+        3. NO 'I AM SORRY': Start directly with an analysis of their data. Do not pity them.
         """
 
     messages = [{"role": "system", "content": system_prompt}]
     messages.extend(chat_state["memory"][-10:])
 
-    # Generate Response
+    # Generate Response using gpt-4o-mini
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         temperature=0.5,
