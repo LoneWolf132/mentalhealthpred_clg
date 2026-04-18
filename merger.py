@@ -192,7 +192,15 @@ def evaluate_holistic_state(student_data, text_intent, text, tas_data=None):
 # -----------------------------
 # 3. Stateful LLM Generation (UPDATED)
 # -----------------------------
+def preprocess_text(text):
+    text = text.lower()
+    for slang, meaning in alpha_slang_map.items():
+        if slang in text:
+            text += f" ({meaning})"
+    return text
+
 def generate_dynamic_response(user_input, student_data, chat_state, tas_data):
+    user_input = preprocess_text(user_input)
     if "factors" not in tas_data:
         tas_data = {
             "factors": {"DIF": 15, "DDF": 10, "EOT": 15}
@@ -208,8 +216,14 @@ def generate_dynamic_response(user_input, student_data, chat_state, tas_data):
     
     # 2. Pass through Logic Gate
     risk_level, directive = evaluate_holistic_state(student_data, intent, user_input, tas_data)
-    
-    # 3. Update Memory
+    # Dynamic word limit
+    '''if risk_level.startswith("HIGH"):
+        word_limit = "200-250 words"
+    elif risk_level.startswith("MODERATE"):
+        word_limit = "120-180 words"
+    else:
+        word_limit = "80-120 words"'''
+        # 3. Update Memory
     chat_state["memory"].append({"role": "user", "content": user_input})
     
     # Base Data Summary for the LLM
@@ -237,22 +251,42 @@ def generate_dynamic_response(user_input, student_data, chat_state, tas_data):
         2. NO ACADEMIC LANGUAGE: Do not use words like 'cognitive dissonance', 'trajectory', or 'friction'. 
         3. TONE: Casual, slightly gamified. Treat their stress like a laggy server or a low battery.
         4. GET TO THE POINT: Execute the directive immediately without introductory filler.
+
+        
         """
     else:
         # Gen Z / Millennial Persona: Analytical, deep, logical.
+
         system_prompt = f"""
-        You are a Technical Mental Health Analyst. Analyze the user's state using 'Material-Psychometric Incongruence'.
+        You are a calm, emotionally intelligent mental health companion.
 
         {data_summary}
 
-        [EXECUTION DIRECTIVE]
-        {directive}
+        [GOAL]
+        Help the user feel understood first. Then gently offer useful insight.
 
-        [INSTRUCTIONS]
-        1. DIAGNOSTIC FRICTION: Analyze the friction between their material metrics (like CGPA) and their internal stress.
-        2. PSYCHE INTERPRETATION: Speak to them as an intellectual equal. If EOT is low, use deep, philosophical language. If DDF is high, offer them vocabulary to describe their state.
-        3. NO 'I AM SORRY': Start directly with an analysis of their data. Do not pity them.
+        [RESPONSE FLOW]
+        - Begin with empathy  
+        - Add helpful insight if needed  
+        - You may ask a question if it feels natural  
+
+        [STYLE RULES]
+        - Sound like a real person, NOT a report  
+        - No academic or technical terms  
+        - Keep sentences short and clear  
+        - Avoid long paragraphs  
+        - Reflect the user’s words occasionally  
+
+        [RESPONSE LENGTH]
+        -Keep the response concise but complete.
+        -Do not cut off emotional clarity just to stay short.
+
+        [IMPORTANT]
+        - If user shows distress → prioritize validation over advice  
+        - If overwhelmed → simplify, don’t analyze deeply  
+        - Never overload the user with too many ideas at once  
         """
+
 
     messages = [{"role": "system", "content": system_prompt}]
     messages.extend(chat_state["memory"][-5:])
@@ -261,7 +295,7 @@ def generate_dynamic_response(user_input, student_data, chat_state, tas_data):
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         temperature=0.5,
-        max_tokens=150,
+        max_tokens=350,
         messages=messages
     )
     
