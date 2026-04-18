@@ -6,7 +6,12 @@ from openai import OpenAI
 # -----------------------------
 # Initialization & Models
 # -----------------------------
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+api_key = os.getenv("OPENAI_API_KEY")
+
+if not api_key:
+    raise ValueError("OPENAI_API_KEY not set")
+
+client = OpenAI(api_key=api_key)
 # -----------------------------
 # Dictionary: Digital Somatic Markers & Slang
 # -----------------------------
@@ -176,6 +181,10 @@ def evaluate_holistic_state(student_data, text_intent, text, tas_data=None):
 # 3. Stateful LLM Generation (UPDATED)
 # -----------------------------
 def generate_dynamic_response(user_input, student_data, chat_state, tas_data):
+    if "factors" not in tas_data:
+        tas_data = {
+            "factors": {"DIF": 15, "DDF": 10, "EOT": 15}
+        }
     if "memory" not in chat_state:
         chat_state["memory"] = []
 
@@ -234,12 +243,13 @@ def generate_dynamic_response(user_input, student_data, chat_state, tas_data):
         """
 
     messages = [{"role": "system", "content": system_prompt}]
-    messages.extend(chat_state["memory"][-10:])
+    messages.extend(chat_state["memory"][-5:])
 
     # Generate Response using gpt-4o-mini
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         temperature=0.5,
+        max_tokens=150,
         messages=messages
     )
     
