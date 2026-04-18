@@ -1,3 +1,4 @@
 dataset.json
 Suicide_Detection.csv
 *.csv
+.env
