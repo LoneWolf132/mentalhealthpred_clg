@@ -1,8 +1,8 @@
 import os
-import json
+#import json
 from openai import OpenAI
-from transformers import pipeline
-os.system("cls" if os.name == "nt" else "clear")
+#from transformers import pipeline
+#os.system("cls" if os.name == "nt" else "clear")
 # -----------------------------
 # Initialization & Models
 # -----------------------------
@@ -27,16 +27,16 @@ alpha_slang_map = {
     "🙃": "masking frustration with a smile",
     "🙏": "seeking help desperately"
 }
-print("Loading NLP Intent Classifier (BART-Large)...")
-intent_classifier = pipeline(
+#print("Loading NLP Intent Classifier (BART-Large)...")
+'''intent_classifier = pipeline(
     "zero-shot-classification", 
     model="facebook/bart-large-mnli"
-)
+)'''
 
 # -----------------------------
 # 1. Contextual Intent Analysis
 # -----------------------------
-def collect_tas20_data(): #toronto alexythymia scale
+'''def collect_tas20_data(): #toronto alexythymia scale
     print("--- Emotional Expression Survey (TAS-20) ---")
     print("Please answer 1-5 (1: Strongly Disagree, 5: Strongly Agree)\n")
     
@@ -88,10 +88,20 @@ def collect_tas20_data(): #toronto alexythymia scale
             "EOT": sum([processed[i-1] for i in [5, 8, 10, 15, 16, 18, 19, 20]]) # External Thinking
         }
     }
-    return tas_data
+    return tas_data'''
 
-def analyze_intent(text, age):
-    processed_text = text.lower()
+def analyze_intent(text):# age):
+    text = text.lower()
+
+    if any(word in text for word in ["help", "please", "🙏"]):
+        return "seeking help", 0.9
+    if any(word in text for word in ["hopeless", "done", "cooked", "💀"]):
+        return "hopelessness", 0.85
+    if any(word in text for word in ["hate", "stupid"]):
+        return "hostility towards assistant", 0.8
+
+    return "venting frustration", 0.7
+    '''processed_text = text.lower()
     
     # Only apply the Slang Map for Gen Z and Gen Alpha (Age <= 26)
     if age <= 26:
@@ -109,7 +119,7 @@ def analyze_intent(text, age):
     ]
     
     result = intent_classifier(processed_text, candidate_labels)
-    return result["labels"][0], result["scores"][0]
+    return result["labels"][0], result["scores"][0]'''
 
 # -----------------------------
 # 2. Holistic Logic Gate
@@ -166,12 +176,14 @@ def evaluate_holistic_state(student_data, text_intent, text, tas_data=None):
 # 3. Stateful LLM Generation (UPDATED)
 # -----------------------------
 def generate_dynamic_response(user_input, student_data, chat_state, tas_data):
-    
+    if "memory" not in chat_state:
+        chat_state["memory"] = []
+
     # Fetch age to pass to the intent analyzer
     age = student_data.get("age", 21)
     
     # 1. Analyze Intent (Now Slang/Emoji-Aware)
-    intent, confidence = analyze_intent(user_input, age)
+    intent, confidence = analyze_intent(user_input)#, age)
     
     # 2. Pass through Logic Gate
     risk_level, directive = evaluate_holistic_state(student_data, intent, user_input, tas_data)
@@ -266,7 +278,7 @@ def collect_student_data():
 # -----------------------------
 # MAIN LOOP
 # -----------------------------
-if __name__ == "__main__":
+'''if __name__ == "__main__":
     
     # Dynamically grab the data before the chat starts
     student_data = collect_student_data()
@@ -293,4 +305,4 @@ if __name__ == "__main__":
             continue
 
         response = generate_dynamic_response(user_input, student_data, chat_state, student_tas20)
-        print("\nBot:", response, "\n")
+        print("\nBot:", response, "\n")'''
