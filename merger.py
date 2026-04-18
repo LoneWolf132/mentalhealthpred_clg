@@ -6,6 +6,18 @@ from openai import OpenAI
 # -----------------------------
 # Initialization & Models
 # -----------------------------
+intent_classifier = None
+
+'''def get_classifier():
+    global intent_classifier
+    if intent_classifier is None:
+        from transformers import pipeline
+        intent_classifier = pipeline(
+            "zero-shot-classification",
+            model="valhalla/distilbart-mnli-12-3"
+        )
+    return intent_classifier'''
+
 api_key = os.getenv("OPENAI_API_KEY")
 
 if not api_key:
@@ -95,7 +107,7 @@ alpha_slang_map = {
     }
     return tas_data'''
 
-def analyze_intent(text):# age):
+def analyze_intent(text):
     text = text.lower()
 
     if any(word in text for word in ["help", "please", "🙏"]):

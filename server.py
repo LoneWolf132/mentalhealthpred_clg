@@ -12,6 +12,7 @@ class ChatRequest(BaseModel):
     user_input: str
     student_data: dict = {}
     tas_data: dict = {}
+    external_factors: dict = {}   # ✅ NEW
     memory: list = []
 
 # -------------------------
@@ -28,7 +29,10 @@ def home():
 def chat(req: ChatRequest):
 
     # 🛡️ Safe defaults (prevents crashes)
-    student_data = req.student_data or {}
+    student_data = {
+        **(req.student_data or {}),
+        **(req.external_factors or {})
+    }
     tas_data = req.tas_data or {
         "factors": {"DIF": 15, "DDF": 10, "EOT": 15}
     }
